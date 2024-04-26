@@ -1,9 +1,7 @@
-# Vue 3 + TypeScript + Vite
+# Boston Code and Coffee Vue Workshop 1
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+This is a workshop dedicated to the basics of the Vue framework including code syntax, components, composables, and css. This project allows workshop attendees to create a tic tac toe game with varying complexity.
 
-## Recommended Setup
+## How to use
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (previously Volar) and disable Vetur
-
-- Use [vue-tsc](https://github.com/vuejs/language-tools/tree/master/packages/tsc) for performing the same type checking from the command line, or for generating d.ts files for SFCs.
+Clone the repo at any of the four provided checkpoints. There is a more complex and detailed version available on the main branch as well.
