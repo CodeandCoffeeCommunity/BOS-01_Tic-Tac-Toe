@@ -1,6 +1,6 @@
 <template>
   <div>
-    {{ props.displayValue ?? 'empty' }}
+    {{ props.displayValue === '' ? 'empty' : props.displayValue}}
   </div>
 </template>
 

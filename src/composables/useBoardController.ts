@@ -1,47 +1,54 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
-export type Marker = 'X' | 'O' | null
+export type Marker = 'X' | 'O' | ''
 type Board = Marker[]
 
-export const useBoardController = () => {
+export const useBoardController = (boardDimension: number) => {
 
   const currentPlayer = ref<Marker>('X')
 
   const createBoard = (): Board => {
-    return Array(9).fill(null)
+    return Array(boardDimension ** 2).fill('')
   }
   
   const board = ref(createBoard())
 
-  const calculateWinner = (board: Board): Marker => {
-    const winLines = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-      [0, 4, 8], [2, 4, 6]             // Diagonals
-    ]
-  
-    for (const line of winLines) {
-      const [a, b, c] = line
-      if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a]
+  const calculateWinner = () => {
+
+    const getReducer = (getIndexInAcc: (i: number) => number) => (acc: Marker[][], curr: Marker, i: number) => {
+      return getIndexInAcc(i) === -1 ? acc : (acc[i].push(curr), acc)
     }
-    return null
+
+    const diagonalMatch = (index: number) => {
+      const leftDiagonalCongruent = index % (boardDimension + 1) === 0
+      const rightDiagonalCongruent = index % (boardDimension - 1) === 0
+      if (leftDiagonalCongruent) return 0
+      if (rightDiagonalCongruent && !leftDiagonalCongruent) return 1
+      return -1
+    }
+
+    const cols = board.value.reduce<Marker[][]>(getReducer((i) => i % boardDimension), [[], [], []])
+    const rows = board.value.reduce<Marker[][]>(getReducer((i) => Math.floor(i / boardDimension)), [[], [], []])
+    const diagonals = board.value.reduce<Marker[][]>(getReducer(diagonalMatch), [[], []])
+
+    return [...cols, ...rows, ...diagonals].some((combo) => combo.join() === currentPlayer.value.repeat(boardDimension))
   }
   
-  const isBoardFull = (board: Board): boolean => {
-    return board.every(cell => cell !== null)
+  const isBoardFull = () => {
+    return board.value.every(cell => cell !== '')
   }
 
-  const playMove = (marker: Marker, cell: number) => {
-    if (cell > 8 || cell < 0) return false
+  const playMove = (cell: number) => {
+    if (cell > boardDimension ** 2 || cell < 0) return false
     if (board.value[cell]) return false
+    board.value[cell] = currentPlayer.value
     currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
-    board.value[cell] = marker
     return true
   }
 
   return {
-    board,
-    currentPlayer,
+    board: computed(() => board.value),
+    currentPlayer: computed(() => currentPlayer.value),
 
     calculateWinner,
     isBoardFull,

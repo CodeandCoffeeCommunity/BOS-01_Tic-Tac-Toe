@@ -1,9 +1,10 @@
 <template>
   <div>{{ currentPlayer }}</div>
+  _
   <Cell 
     v-for="(cell, index) in board"
     :display-value="cell"
-    @click="playMove(currentPlayer, index)"
+    @click="playMove(index)"
   />
 </template>
 
@@ -12,5 +13,7 @@ import Cell from './components/Cell.vue'
 
 import { useBoardController } from './composables/useBoardController'
 
-const { board, currentPlayer, playMove } = useBoardController()
+const BOARD_SIZE = 5
+
+const { board, currentPlayer, playMove } = useBoardController(BOARD_SIZE)
 </script>
