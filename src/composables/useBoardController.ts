@@ -56,9 +56,10 @@ export const useBoardController = (boardDimension: Ref<number>) => {
   return {
     board: computed(() => board.value),
     currentPlayer: computed(() => currentPlayer.value),
-
     computeWinner: computed(() => winner.value),
     computeIsBoardFull,
+
     playMove, 
+    resetBoard: () => board.value = createBoard(),
   }
 }
