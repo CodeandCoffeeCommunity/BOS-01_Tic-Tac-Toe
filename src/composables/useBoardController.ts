@@ -16,22 +16,34 @@ export const useBoardController = (boardDimension: number) => {
   const calculateWinner = () => {
 
     const getReducer = (getIndexInAcc: (i: number) => number) => (acc: Marker[][], curr: Marker, i: number) => {
-      return getIndexInAcc(i) === -1 ? acc : (acc[i].push(curr), acc)
-    }
+      const indexIntoAcc = getIndexInAcc(i)
+      const arr = acc[indexIntoAcc]
+      if (!arr) {
+        console.log('not able to find arr for index', indexIntoAcc)
+        return acc
+      }
 
-    const diagonalMatch = (index: number) => {
-      const leftDiagonalCongruent = index % (boardDimension + 1) === 0
-      const rightDiagonalCongruent = index % (boardDimension - 1) === 0
-      if (leftDiagonalCongruent) return 0
-      if (rightDiagonalCongruent && !leftDiagonalCongruent) return 1
-      return -1
+      arr.push(curr)
+      return acc
     }
 
     const cols = board.value.reduce<Marker[][]>(getReducer((i) => i % boardDimension), [[], [], []])
     const rows = board.value.reduce<Marker[][]>(getReducer((i) => Math.floor(i / boardDimension)), [[], [], []])
-    const diagonals = board.value.reduce<Marker[][]>(getReducer(diagonalMatch), [[], []])
+    
+    const diag1: Marker[] = []
+    for (let i = 0; i < board.value.length; i += boardDimension + 1) {
+      diag1.push(board.value[i])
+    }
 
-    return [...cols, ...rows, ...diagonals].some((combo) => combo.join() === currentPlayer.value.repeat(boardDimension))
+    const diag2: Marker[] = []
+    for (let i = boardDimension - 1; i < board.value.length - 1; i += boardDimension -  1) {
+      diag2.push(board.value[i])
+    }
+
+
+    console.log(JSON.stringify(diag1, null, 2))
+    console.log(JSON.stringify(diag2, null, 2))
+    return [...cols, ...rows, diag1, diag2].some((combo) => combo.join() === currentPlayer.value.repeat(boardDimension))
   }
   
   const isBoardFull = () => {
@@ -43,6 +55,7 @@ export const useBoardController = (boardDimension: number) => {
     if (board.value[cell]) return false
     board.value[cell] = currentPlayer.value
     currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
+    calculateWinner()
     return true
   }
 
@@ -51,7 +64,7 @@ export const useBoardController = (boardDimension: number) => {
     currentPlayer: computed(() => currentPlayer.value),
 
     calculateWinner,
-    isBoardFull,
-    playMove,
+    isBoardFull, // should be computed and calc win too
+    playMove, 
   }
 }
