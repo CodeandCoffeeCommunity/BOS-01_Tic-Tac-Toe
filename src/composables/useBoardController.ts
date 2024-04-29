@@ -1,50 +1,64 @@
-import { ref } from 'vue'
+import { ref, computed, watchEffect, Ref } from 'vue'
 
-export type Marker = 'X' | 'O' | null
+export type Marker = 'X' | 'O' | ''
 type Board = Marker[]
 
-export const useBoardController = () => {
+export const useBoardController = (boardDimension: Ref<number>) => {
 
   const currentPlayer = ref<Marker>('X')
+  const winner = ref(false)
 
   const createBoard = (): Board => {
-    return Array(9).fill(null)
+    return Array(boardDimension.value ** 2).fill('')
   }
   
   const board = ref(createBoard())
+  watchEffect(() => {
+    board.value = createBoard()
+  })
 
-  const calculateWinner = (board: Board): Marker => {
-    const winLines = [
-      [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
-      [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
-      [0, 4, 8], [2, 4, 6]             // Diagonals
-    ]
-  
-    for (const line of winLines) {
-      const [a, b, c] = line
-      if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a]
+  const calculateWinner = () => {
+
+    const getReducer = (getIndexInAcc: (i: number) => number) => (acc: Marker[][], curr: Marker, i: number) => {
+      const indexIntoAcc = getIndexInAcc(i)
+      const arr = acc[indexIntoAcc]
+      if (arr) arr.push(curr)
+      return acc
     }
-    return null
+    const cols = board.value.reduce<Marker[][]>(getReducer((i) => i % boardDimension.value), [[], [], []])
+    const rows = board.value.reduce<Marker[][]>(getReducer((i) => Math.floor(i / boardDimension.value)), [[], [], []])
+    
+    const diagonalLeftToRight: Marker[] = []
+    for (let i = 0; i < board.value.length; i += boardDimension.value + 1) {
+      diagonalLeftToRight.push(board.value[i])
+    }
+
+    const diagonalRightToLeft: Marker[] = []
+    for (let i = boardDimension.value - 1; i < board.value.length - 1; i += boardDimension.value -  1) {
+      diagonalRightToLeft.push(board.value[i])
+    }
+    return [...cols, ...rows, diagonalLeftToRight, diagonalRightToLeft].some((combo) => combo.join('') === currentPlayer.value.repeat(boardDimension.value))
   }
   
-  const isBoardFull = (board: Board): boolean => {
-    return board.every(cell => cell !== null)
-  }
+  const computeIsBoardFull = computed(() => {
+    return board.value.every(cell => cell !== '')
+  })
 
-  const playMove = (marker: Marker, cell: number) => {
-    if (cell > 8 || cell < 0) return false
+  const playMove = (cell: number) => {
+    if (cell > boardDimension.value ** 2 || cell < 0) return false
     if (board.value[cell]) return false
-    currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
-    board.value[cell] = marker
+    board.value[cell] = currentPlayer.value
+    winner.value = calculateWinner()
+    if (!winner.value) currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
     return true
   }
 
   return {
-    board,
-    currentPlayer,
+    board: computed(() => board.value),
+    currentPlayer: computed(() => currentPlayer.value),
 
-    calculateWinner,
-    isBoardFull,
-    playMove,
+    computeWinner: computed(() => winner.value),
+    computeIsBoardFull,
+    playMove, 
   }
 }
