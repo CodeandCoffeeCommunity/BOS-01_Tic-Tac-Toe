@@ -1,6 +1,7 @@
 <template>
-  <div>
-    {{ props.displayValue ?? 'empty' }}
+  <div
+    :style="`width: 50px; height: 50px; background-color: rgb(25, 25, 25); display: flex; align-items: center; justify-content: center; border-radius: 5px; font-style: black; font-size: larger; cursor: ${props.displayValue ? 'not-allowed' : 'pointer'};`">
+    {{ props.displayValue ?? props.displayValue }}
   </div>
 </template>
 
@@ -8,6 +9,6 @@
 import type { Marker } from '../composables/useBoardController'
 
 const props = defineProps<{
-  displayValue: Marker
+  displayValue: Marker,
 }>()
 </script>

@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
 export type Marker = 'X' | 'O' | null
 type Board = Marker[]
@@ -13,7 +13,7 @@ export const useBoardController = () => {
   
   const board = ref(createBoard())
 
-  const calculateWinner = (board: Board): Marker => {
+  const computeWinner = computed(() => {
     const winLines = [
       [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
       [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
@@ -22,29 +22,29 @@ export const useBoardController = () => {
   
     for (const line of winLines) {
       const [a, b, c] = line
-      if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a]
+      if (board.value[a] && board.value[a] === board.value[b] && board.value[a] === board.value[c]) return true
     }
-    return null
-  }
+    return false
+  })
   
-  const isBoardFull = (board: Board): boolean => {
-    return board.every(cell => cell !== null)
-  }
+  const computeIsBoardFull = computed(() => {
+    return board.value.every(cell => cell !== null)
+  })
 
-  const playMove = (marker: Marker, cell: number) => {
+  const playMove = (cell: number) => {
     if (cell > 8 || cell < 0) return false
     if (board.value[cell]) return false
-    currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
-    board.value[cell] = marker
+    board.value[cell] = currentPlayer.value
+    if (!computeWinner.value) currentPlayer.value = currentPlayer.value === 'X' ? 'O' : 'X'
     return true
   }
 
   return {
-    board,
-    currentPlayer,
-
-    calculateWinner,
-    isBoardFull,
+    board: computed(() => board.value),
+    currentPlayer: computed(() => currentPlayer.value),
+    computeWinner,
+    computeIsBoardFull,
     playMove,
+    resetBoard: () => board.value = createBoard(),
   }
 }
